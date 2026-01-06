@@ -1,0 +1,7 @@
+[package]
+name = "leaflet_nbt"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leaflet_network_buffer = { path = "../leaflet_network_buffer" }

@@ -1,0 +1,11 @@
+[package]
+name = "leaflet_protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leaflet_network_buffer = { workspace = true }
+leaflet_macros = { workspace = true }
+leaflet_types = { workspace = true }
+leaflet_nbt = { workspace = true }
+uuid = { workspace = true }

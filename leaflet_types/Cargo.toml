@@ -1,0 +1,9 @@
+[package]
+name = "leaflet_types"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leaflet_network_buffer = { workspace = true }
+leaflet_macros = { workspace = true }
+uuid = { workspace = true }

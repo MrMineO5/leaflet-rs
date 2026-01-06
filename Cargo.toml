@@ -1,0 +1,38 @@
+[workspace]
+members = [
+    "leaflet_macros",
+    "leaflet_nbt",
+    "leaflet_network_buffer",
+    "leaflet_types",
+    "leaflet_protocol"
+]
+
+[workspace.dependencies]
+leaflet_macros = { path = "leaflet_macros" }
+leaflet_nbt = { path = "leaflet_nbt" }
+leaflet_network_buffer = { path = "leaflet_network_buffer" }
+leaflet_types = { path = "leaflet_types" }
+leaflet_protocol = { path = "leaflet_protocol" }
+tokio = { version = "1.49.0", features = ["rt", "rt-multi-thread", "net", "io-std", "io-util", "macros"] }
+uuid = { version = "1.19.0", features = ["v4"] }
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+
+
+[package]
+name = "leaflet_rs"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leaflet_macros = { workspace = true }
+leaflet_nbt = { workspace = true }
+leaflet_network_buffer = { workspace = true }
+leaflet_types = { workspace = true }
+leaflet_protocol = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+
