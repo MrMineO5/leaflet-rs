@@ -3,9 +3,7 @@ use crate::Packet;
 use leaflet_macros::{NetworkType, Packet};
 
 #[derive(Debug, NetworkType, Packet)]
-#[clientbound]
+#[serverbound]
 #[state(Play)]
-#[packet_id(0x2B)]
-pub struct ClientboundKeepAlivePacket {
-    pub id: i64
-}
+#[packet_id(0x0C)]
+pub struct ClientboundPlayLoginPacket;

@@ -6,7 +6,7 @@ use leaflet_types::location::Location;
 
 #[derive(Debug, NetworkType, Packet)]
 #[clientbound]
-#[state(Login)]
+#[state(Play)]
 #[packet_id(0x30)]
 pub struct ClientboundPlayLoginPacket {
     pub entity_id: i32,

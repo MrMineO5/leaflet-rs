@@ -6,6 +6,7 @@ use tokio::net::TcpStream;
 use leaflet_protocol::{handle_configuration_serverbound, handle_handshake_serverbound, handle_login_serverbound, handle_play_serverbound, handle_status_serverbound, ConnectionState, Packet};
 use leaflet_protocol::clientbound::configuration::configuration_keep_alive::ClientboundConfigurationKeepAlivePacket;
 use leaflet_protocol::clientbound::play::keep_alive::ClientboundKeepAlivePacket;
+use leaflet_types::game_profile::GameProfile;
 use crate::handlers::HANDLERS;
 
 const KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(1);
@@ -15,7 +16,8 @@ pub struct ClientConnection {
     pub state: ConnectionState,
     packet_reader: PacketReader,
     packet_queue: Vec<McBuf>,
-    last_keep_alive: SystemTime,
+    pub last_keep_alive: SystemTime,
+    pub gameprofile: Option<GameProfile>,
 }
 
 impl ClientConnection {
@@ -26,6 +28,7 @@ impl ClientConnection {
             packet_reader: PacketReader::new(),
             packet_queue: Vec::new(),
             last_keep_alive: SystemTime::now(),
+            gameprofile: None,
         }
     }
 

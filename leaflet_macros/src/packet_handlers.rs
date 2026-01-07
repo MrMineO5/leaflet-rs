@@ -174,7 +174,6 @@ pub fn expand(input: TokenStream) -> TokenStream {
                     handler: &H,
                 ) -> leaflet_network_buffer::BufferResult<()> {
                     let id = buf.read_var_int()?;
-                    println!("Packet id: {id}");
                     match id {
                         #(#arms,)*
                         _ => handler.on_unknown(connection, id, buf),

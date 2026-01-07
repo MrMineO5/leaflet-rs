@@ -1,21 +1,36 @@
-use leaflet_protocol::{ConfigurationServerboundHandler, ConnectionState, HandshakeServerboundHandler, LoginServerboundHandler, PlayServerboundHandler, StatusServerboundHandler};
+use crate::client_connection::ClientConnection;
+use leaflet_network_buffer::McBuf;
 use leaflet_protocol::clientbound::configuration::code_of_conduct::ClientboundCodeOfConductPacket;
 use leaflet_protocol::clientbound::configuration::finish_configuration::ClientboundFinishConfigurationPacket;
-use leaflet_protocol::clientbound::configuration::known_packs::{ClientboundKnownPacksPacket, KnownPack};
-use leaflet_protocol::clientbound::configuration::registry_data::{ClientboundRegistryDataPacket, RegistryEntry};
-use leaflet_protocol::clientbound::configuration::update_tags::{ClientboundUpdateTagsPacket, RegistryTags, TagEntry};
+use leaflet_protocol::clientbound::configuration::known_packs::{
+    ClientboundKnownPacksPacket, KnownPack,
+};
+use leaflet_protocol::clientbound::configuration::registry_data::{
+    ClientboundRegistryDataPacket, RegistryEntry,
+};
+use leaflet_protocol::clientbound::configuration::update_tags::{
+    ClientboundUpdateTagsPacket, RegistryTags, TagEntry,
+};
 use leaflet_protocol::clientbound::play::login::ClientboundPlayLoginPacket;
-use leaflet_protocol::login::{ClientboundLoginSuccessPacket, ServerboundLoginAcknowledgedPacket, ServerboundLoginStartPacket};
+use leaflet_protocol::login::{
+    ClientboundLoginSuccessPacket, ServerboundLoginAcknowledgedPacket, ServerboundLoginStartPacket,
+};
 use leaflet_protocol::serverbound::configuration::accept_code_of_conduct::ServerboundAcceptCodeOfConductPacket;
 use leaflet_protocol::serverbound::configuration::acknowledge_finish_configuration::ServerboundAcknowledgeFinishConfigurationPacket;
 use leaflet_protocol::serverbound::configuration::client_information::ServerboundClientInformationPacket;
 use leaflet_protocol::serverbound::configuration::configuration_keep_alive_response::ServerboundConfigurationKeepAliveResponsePacket;
 use leaflet_protocol::serverbound::configuration::known_packs::ServerboundKnownPacksPacket;
 use leaflet_protocol::serverbound::handshake::serverbound_handshake::ServerboundHandshakePacket;
-use leaflet_protocol::status::{ClientboundPongPacket, ClientboundStatusResponsePacket, ServerboundPingPacket, ServerboundStatusRequestPacket};
+use leaflet_protocol::status::{
+    ClientboundPongPacket, ClientboundStatusResponsePacket, ServerboundPingPacket,
+    ServerboundStatusRequestPacket,
+};
+use leaflet_protocol::{
+    ConfigurationServerboundHandler, ConnectionState, HandshakeServerboundHandler,
+    LoginServerboundHandler, PlayServerboundHandler, StatusServerboundHandler,
+};
 use leaflet_types::game_profile::GameProfile;
 use leaflet_types::identifier::Identifier;
-use crate::client_connection::ClientConnection;
 
 pub struct PacketHandler;
 
@@ -28,6 +43,18 @@ impl HandshakeServerboundHandler for PacketHandler {
             2 | 3 => connection.state = ConnectionState::Login,
             _ => panic!("Invalid intent: {}", packet.intent),
         }
+    }
+
+    fn on_unknown(&self, connection: &mut Self::ClientType, id: i32, buf: &mut McBuf) {
+        let username = connection
+            .gameprofile
+            .as_ref()
+            .map(|g| g.username.clone())
+            .unwrap_or("unknown player".into());
+        println!(
+            "({username}) Received unknown Handshake packet: {id} length {}",
+            buf.length()
+        )
     }
 }
 
@@ -52,6 +79,18 @@ impl StatusServerboundHandler for PacketHandler {
         };
         connection.queue_packet(&response_packet);
     }
+
+    fn on_unknown(&self, connection: &mut Self::ClientType, id: i32, buf: &mut McBuf) {
+        let username = connection
+            .gameprofile
+            .as_ref()
+            .map(|g| g.username.clone())
+            .unwrap_or("unknown player".into());
+        println!(
+            "({username}) Received unknown Status packet: {id} length {}",
+            buf.length()
+        )
+    }
 }
 
 impl LoginServerboundHandler for PacketHandler {
@@ -64,13 +103,15 @@ impl LoginServerboundHandler for PacketHandler {
     ) {
         println!("Login start: {} ({})", packet.username, packet.uuid);
 
-        let response_packet = ClientboundLoginSuccessPacket {
-            gameprofile: GameProfile {
-                uuid: packet.uuid,
-                username: packet.username,
-                properties: vec![],
-            },
+        let gameprofile = GameProfile {
+            uuid: packet.uuid,
+            username: packet.username,
+            properties: vec![],
         };
+
+        connection.gameprofile = Some(gameprofile.clone());
+
+        let response_packet = ClientboundLoginSuccessPacket { gameprofile };
         connection.queue_packet(&response_packet);
     }
 
@@ -82,6 +123,18 @@ impl LoginServerboundHandler for PacketHandler {
         println!("Login acknowledged!");
 
         connection.state = ConnectionState::Configuration;
+    }
+
+    fn on_unknown(&self, connection: &mut Self::ClientType, id: i32, buf: &mut McBuf) {
+        let username = connection
+            .gameprofile
+            .as_ref()
+            .map(|g| g.username.clone())
+            .unwrap_or("unknown player".into());
+        println!(
+            "({username}) Received unknown Login packet: {id} length {}",
+            buf.length()
+        )
     }
 }
 
@@ -202,9 +255,7 @@ impl ConfigurationServerboundHandler for PacketHandler {
         connection.queue_packet(&ClientboundUpdateTagsPacket {
             tagged_registries: vec![RegistryTags {
                 registry_id: Identifier::minecraft("timeline"),
-                entries: vec![TagEntry::empty(Identifier::minecraft(
-                    "in_overworld",
-                ))],
+                entries: vec![TagEntry::empty(Identifier::minecraft("in_overworld"))],
             }],
         });
 
@@ -213,10 +264,18 @@ impl ConfigurationServerboundHandler for PacketHandler {
         });
     }
 
-    fn on_configuration_keep_alive_response(&self, _connection: &mut Self::ClientType, _packet: ServerboundConfigurationKeepAliveResponsePacket) {
+    fn on_configuration_keep_alive_response(
+        &self,
+        _connection: &mut Self::ClientType,
+        _packet: ServerboundConfigurationKeepAliveResponsePacket,
+    ) {
     }
 
-    fn on_accept_code_of_conduct(&self, connection: &mut Self::ClientType, _packet: ServerboundAcceptCodeOfConductPacket) {
+    fn on_accept_code_of_conduct(
+        &self,
+        connection: &mut Self::ClientType,
+        _packet: ServerboundAcceptCodeOfConductPacket,
+    ) {
         connection.queue_packet(&ClientboundFinishConfigurationPacket);
     }
 
@@ -252,10 +311,34 @@ impl ConfigurationServerboundHandler for PacketHandler {
             enforces_secure_chat: false,
         })
     }
+
+    fn on_unknown(&self, connection: &mut Self::ClientType, id: i32, buf: &mut McBuf) {
+        let username = connection
+            .gameprofile
+            .as_ref()
+            .map(|g| g.username.clone())
+            .unwrap_or("unknown player".into());
+        println!(
+            "({username}) Received unknown Configuration packet: {id} length {}",
+            buf.length()
+        )
+    }
 }
 
 impl PlayServerboundHandler for PacketHandler {
     type ClientType = ClientConnection;
+
+    fn on_unknown(&self, connection: &mut Self::ClientType, id: i32, buf: &mut McBuf) {
+        let username = connection
+            .gameprofile
+            .as_ref()
+            .map(|g| g.username.clone())
+            .unwrap_or("unknown player".into());
+        println!(
+            "({username}) Received unknown Play packet: {id} length {}",
+            buf.length()
+        )
+    }
 }
 
 pub static HANDLERS: PacketHandler = PacketHandler;
