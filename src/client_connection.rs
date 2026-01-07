@@ -7,7 +7,7 @@ use leaflet_protocol::{handle_configuration_serverbound, handle_handshake_server
 use leaflet_protocol::clientbound::configuration::configuration_keep_alive::ClientboundConfigurationKeepAlivePacket;
 use leaflet_protocol::clientbound::play::keep_alive::ClientboundKeepAlivePacket;
 use leaflet_types::game_profile::GameProfile;
-use crate::handlers::HANDLERS;
+use crate::handlers::{PacketHandler};
 
 const KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(1);
 
@@ -66,19 +66,19 @@ impl ClientConnection {
         while let Some(mut packet) = self.packet_reader.read_packet() {
             match self.state {
                 ConnectionState::Handshake => {
-                    handle_handshake_serverbound(self, &mut packet, &HANDLERS).unwrap()
+                    handle_handshake_serverbound(self, &mut packet, &PacketHandler).unwrap()
                 }
                 ConnectionState::Status => {
-                    handle_status_serverbound(self, &mut packet, &HANDLERS).unwrap()
+                    handle_status_serverbound(self, &mut packet, &PacketHandler).unwrap()
                 }
                 ConnectionState::Login => {
-                    handle_login_serverbound(self, &mut packet, &HANDLERS).unwrap()
+                    handle_login_serverbound(self, &mut packet, &PacketHandler).unwrap()
                 }
                 ConnectionState::Configuration => {
-                    handle_configuration_serverbound(self, &mut packet, &HANDLERS).unwrap()
+                    handle_configuration_serverbound(self, &mut packet, &PacketHandler).unwrap()
                 }
                 ConnectionState::Play => {
-                    handle_play_serverbound(self, &mut packet, &HANDLERS).unwrap()
+                    handle_play_serverbound(self, &mut packet, &PacketHandler).unwrap()
                 }
             }
         }
