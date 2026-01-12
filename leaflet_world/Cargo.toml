@@ -1,0 +1,8 @@
+[package]
+name = "leaflet_world"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leaflet_nbt.workspace = true
+leaflet_network_buffer.workspace = true

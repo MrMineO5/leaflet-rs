@@ -85,6 +85,7 @@ dependencies = [
  "leaflet_network_buffer",
  "leaflet_protocol",
  "leaflet_types",
+ "leaflet_world",
  "tokio",
  "uuid",
 ]
@@ -96,6 +97,14 @@ dependencies = [
  "leaflet_macros",
  "leaflet_network_buffer",
  "uuid",
+]
+
+[[package]]
+name = "leaflet_world"
+version = "0.1.0"
+dependencies = [
+ "leaflet_nbt",
+ "leaflet_network_buffer",
 ]
 
 [[package]]
